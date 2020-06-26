@@ -12,7 +12,7 @@ include_once (filter_input(INPUT_SERVER,'DOCUMENT_ROOT').'/class/all_classes.php
 if (!empty(filter_input(INPUT_GET, "dg_id"))) {
     if (DeviceGroup::regexDgID(filter_input(INPUT_GET, "dg_id"))) {
         $dg_id = filter_input(INPUT_GET, "dg_id");
-        $query = "  SELECT `devices`.`device_desc`
+        $query = "SELECT `devices`.`device_desc`
                     FROM `devices`
                     WHERE `devices`.`dg_id` = $dg_id
                     UNION
@@ -20,7 +20,7 @@ if (!empty(filter_input(INPUT_GET, "dg_id"))) {
                     FROM `devices`
                     LEFT JOIN `device_group`
                     ON `devices`.`dg_id` = `device_group`.`dg_id`
-                    WHERE `device_group`.`dg_parent` = '$dg_id'
+                    WHERE `device_group`.`dg_parent` = $dg_id
                     ORDER BY `device_desc`;";
     } else {
         echo ("<td id=\"td_deviceList\">Invalid DG_ID</td>");
@@ -43,4 +43,5 @@ if ($result = $mysqli->query($query)){
     }
 } else {
 	echo ("<td id=\"td_deviceList\">$mysqli->error</td>");
+    error_log("admin/sub/certDevides.php: SQL error: $mysqli->error");
 }?>

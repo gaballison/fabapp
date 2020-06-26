@@ -11,14 +11,14 @@ include_once (filter_input(INPUT_SERVER,'DOCUMENT_ROOT').'/class/all_classes.php
 
 if (!empty(filter_input(INPUT_GET, "d_id"))) {
     if (Devices::regexDeviceID(filter_input(INPUT_GET, "d_id"))) {
-        $query = "SELECT * FROM `trainingmodule` WHERE d_id = '".filter_input(INPUT_GET, "d_id")."' ORDER BY `title`";
+        $query = "SELECT * FROM `trainingmodule` WHERE d_id = $_GET[d_id] ORDER BY `title`;";
     } else {
         echo ("<option disabled hidden selected value='ERROR'>ERROR - d</option>");
         exit();
     }
 } elseif (!empty(filter_input(INPUT_GET, "dg_id"))) {
     if (DeviceGroup::regexDgID(filter_input(INPUT_GET, "dg_id"))) {
-        $query = "SELECT * FROM `trainingmodule` WHERE dg_id = '".filter_input(INPUT_GET, "dg_id")."' ORDER BY `title`";
+        $query = "SELECT * FROM `trainingmodule` WHERE dg_id = $_GET[dg_id] ORDER BY `title`;";
     } else {
         echo ("<option disabled hidden selected value='ERROR'>ERROR - dg</option>");
         exit();
@@ -28,7 +28,8 @@ if (!empty(filter_input(INPUT_GET, "d_id"))) {
     exit();
 } 
 
-if ($result = $mysqli->query($query)){
+if ($result = $mysqli->query($query))
+{
     if ($result->num_rows == 0){
         echo ("<option>None</option>");
     } else {
@@ -38,6 +39,7 @@ if ($result = $mysqli->query($query)){
         }
     }
 } else {
+    error_log("admin/sub/certTM.php: SQL error: $mysqli->error");
     echo ("<option disabled hidden selected value='ERROR'> ERROR</option>");
     echo $mysqli->error;
 }?>

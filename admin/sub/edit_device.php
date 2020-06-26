@@ -13,11 +13,11 @@ if (!$staff || $staff->getRoleID() < 10){
     exit();
 } else {
     $d_id = filter_input(INPUT_GET , 'd_id', FILTER_VALIDATE_INT, false);
-    if (is_int($d_id) && $result = $mysqli->query("
-        SELECT `d`.`device_desc`, `d`.`time_limit`, `d`.`base_price`, `d`.`public_view`, `d`.`dg_id`, `d`.`url`, `dg`.`dg_desc`
+    if (is_int($d_id) && $result = $mysqli->query(
+        "SELECT `d`.`device_desc`, `d`.`time_limit`, `d`.`base_price`, `d`.`public_view`, `d`.`dg_id`, `d`.`url`, `dg`.`dg_desc`
         FROM `devices` `d`, `device_group` `dg`
-        WHERE `d`.`d_id`=$d_id AND `d`.`dg_id`=`dg`.`dg_id`;
-    ")) {
+        WHERE `d`.`d_id`=$d_id AND `d`.`dg_id`=`dg`.`dg_id`;"
+    )) {
         if ($result->num_rows == 1){
             $row = $result->fetch_assoc();
             $d_name = $row['device_desc'];
@@ -39,6 +39,7 @@ if (!$staff || $staff->getRoleID() < 10){
         //Not Authorized to see this Page
         $_SESSION['error_msg'] = "Invalid device.";
         header('Location: /admin/manage_device.php');
+        error_log("admin/sub/edit_device.php: SQL error: $mysqli->error");
         exit();
     }
 }

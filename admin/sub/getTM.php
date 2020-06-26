@@ -6,10 +6,10 @@
  */
 include_once ($_SERVER['DOCUMENT_ROOT'].'/connections/db_connect8.php');
 
-if (!empty($_GET["d_id"])) {
-    $query = "SELECT * FROM `trainingmodule` WHERE d_id = '".$_GET['d_id']."' ORDER BY `title`";
-} elseif (!empty($_GET["dg_id"])) {
-    $query = "SELECT * FROM `trainingmodule` WHERE dg_id = '".$_GET['dg_id']."' ORDER BY `title`";
+if (!empty($_GET["d_id"]) && (is_numeric($_GET["d_id"]) || is_int($_GET["d_id"]))) {
+    $query = "SELECT * FROM `trainingmodule` WHERE d_id = $_GET[d_id] ORDER BY `title`";
+} elseif (!empty($_GET["dg_id"]) && (is_numeric($_GET["dg_id"]) || is_int($_GET["dg_id"]))) {
+    $query = "SELECT * FROM `trainingmodule` WHERE dg_id = $_GET[dg_id] ORDER BY `title`";
 } else {
     echo ("<tr class='tablerow' id='tm'><td colspan=4>ERROR</td>");
 } ?>
@@ -25,6 +25,7 @@ if (!empty($_GET["d_id"])) {
         }
     }
 } else {
+    error_log("admin/sub/getTM.php: SQL error: $mysqli->error");
     echo ("<tr class='tablerow' id='tm'><td colspan=4>ERROR</td>");
     echo $mysqli->error;
 }?>
