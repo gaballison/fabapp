@@ -36,17 +36,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 		advanceNum($i, "mNext");
 	}
 }
+
+
 function advanceNum($i, $str){
 	global $mysqli;
 	
-	if ($result = $mysqli->query("
-	  UPDATE site_variables
-	  SET value = $i
-	  WHERE site_variables.name = '$str';
-	")){
+	if ($result = $mysqli->query("UPDATE site_variables SET value = $i WHERE site_variables.name = '$str';"))
+	{
 		header("Location: /index.php");
-	} else {
+	}
+	else
+	{
 		$_SESSION['error_msg'] = "SQL Error";
+		error_log("index.php: SQL error: $mysqli->error");
 		header("Location: /index.php");
 	}
 	exit();
@@ -92,7 +94,8 @@ function advanceNum($i, $str){
 							</ul>
 							<div class="tab-content">
 								<?php
-								if ($Tabresult = Wait_queue::getTabResult()) {
+								if ($Tabresult = Wait_queue::getTabResult())
+								{
 									while($tab = $Tabresult->fetch_assoc()){
 										$number_of_queue_tables++;
 										
@@ -120,13 +123,14 @@ function advanceNum($i, $str){
 												</thead>
 												<tbody>
 													<?php // Display all of the students in the wait queue for a device group
-													if ($result = $mysqli->query("
-															SELECT *
-															FROM wait_queue WQ JOIN device_group DG ON WQ.devgr_id = DG.dg_id
-															LEFT JOIN devices D ON WQ.Dev_id = D.d_id
-															WHERE valid = 'Y' and WQ.devgr_id=$tab[dg_id]
-															ORDER BY Q_id;
-													")) {
+													if($result = $mysqli->query(
+														"SELECT *
+														FROM wait_queue WQ JOIN device_group DG ON WQ.devgr_id = DG.dg_id
+														LEFT JOIN devices D ON WQ.Dev_id = D.d_id
+														WHERE valid = 'Y' and WQ.devgr_id=$tab[dg_id]
+														ORDER BY Q_id;"
+													))
+													{
    
 
 														while ($row = $result->fetch_assoc()) {
@@ -215,12 +219,20 @@ function advanceNum($i, $str){
 																</td>
 																<?php } ?>
 															</tr>
-														<?php }
-													} ?>
+															<?php
+														}
+													}
+													else
+													{
+														echo "<tr><td colspan='4'>index.php: SQL error: $mysqli->error</td></tr>";
+														error_log("index.php: SQL error: $mysqli->error");
+													}
+													?>
 												</tbody>
 											</table>
 										</div>
-									<?php }
+										<?php
+									}
 								} ?>
 								</div>
 						</div>
@@ -229,7 +241,10 @@ function advanceNum($i, $str){
 				</div>
 			</div>
 			<!-- /.col-md-8 -->
-			<?php if ($staff && ($staff->getRoleID() >= $sv['LvlOfStaff'])) { ?>
+			<?php
+			if ($staff && ($staff->getRoleID() >= $sv['LvlOfStaff']))
+			{ 
+				?>
 				<div class="col-md-4">
 					<div class="panel panel-default">
 						<div class="panel-heading">
@@ -248,8 +263,8 @@ function advanceNum($i, $str){
 											<select class="form-control" name="devGrp" id="devGrp" onChange="change_group()" >
 												<option value="" selected hidden> Select Device</option>
 												<?php // Load all of the device groups that are being waited for - signified with a 'DG' in front of the value attribute
-													if ($result = $mysqli->query("
-															SELECT DISTINCT D.`device_desc`, D.`dg_id`, D.`d_id`
+													if ($result = $mysqli->query(
+															"SELECT DISTINCT D.`device_desc`, D.`dg_id`, D.`d_id`
 															FROM `devices` D 
 															JOIN `wait_queue` WQ on D.`dg_id` = WQ.`Devgr_id`
 															LEFT JOIN (SELECT trans_id, t_start, t_end, d_id, operator, status_id FROM transactions WHERE status_id < $status[total_fail] ORDER BY trans_id DESC) as t
@@ -258,15 +273,22 @@ function advanceNum($i, $str){
 																SELECT `d_id`
 																FROM `service_call`
 																WHERE `solved` = 'N' AND `sl_id` >= 7
-															)
-													")) {
+															);"
+													))
+													{
 														while ( $rows = mysqli_fetch_array ( $result ) ) {
 															// Create value in the form of DG_dgID-dID
 															echo "<option value=". "DG_" . $rows ['dg_id'] . "-" . $rows ['d_id'].">" . $rows ['device_desc'] . "</option>";
 														}
-													} else {
-														die ("There was an error loading the device groups.");
-													} ?> 
+													}
+													else
+													{
+														echo	"<option value='' hidden selected disabled>
+																	index.php: SQL error: $mysqli->error
+																</option>";
+														error_log("index.php: SQL error: $mysqli->error");
+													}
+												?> 
 											</select>
 										</td>
 									</tr>
@@ -304,16 +326,17 @@ function advanceNum($i, $str){
 								<th>Est Remaining Time</th>
 							</tr>
 						</thead>
-						<?php if ($result = $mysqli->query("
-							SELECT trans_id, device_desc, t_start, est_time, devices.d_id, url, status_id
+						<?php if ($result = $mysqli->query(
+							"SELECT trans_id, device_desc, t_start, est_time, devices.d_id, url, status_id
 							FROM `devices`
 							JOIN `device_group`
 							ON `devices`.`dg_id` = `device_group`.`dg_id`
 							LEFT JOIN (SELECT trans_id, t_start, est_time, d_id, status_id FROM transactions WHERE status_id < $status[total_fail] ORDER BY trans_id DESC) as t 
 							ON `devices`.`d_id` = `t`.`d_id`
 							WHERE public_view = 'Y'
-							ORDER BY `trans_id` DESC, `device_desc` ASC
-						")){
+							ORDER BY `trans_id` DESC, `device_desc` ASC;"
+						))
+						{
 							while ( $row = $result->fetch_assoc() ){ ?>
 								<tr class="tablerow">
 									<?php if($row["t_start"]) {
@@ -376,8 +399,15 @@ function advanceNum($i, $str){
 										<td align="center"> - </td>
 									<?php } ?>
 								</tr>
-							<?php }
-						} ?>
+								<?php
+							}
+						}
+						else 
+						{
+							echo "<tr> <td colspan='4'>index.php: SQL error: $mysqli->error</td></tr>";
+							error_log("index.php SQL error: $mysqli->error");
+						}
+					?>
 					</table>
 				</div>
 			</div>

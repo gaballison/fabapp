@@ -50,6 +50,11 @@ if (!$staff || $staff->getRoleID() < $sv['LvlOfStaff']){
 																	null, null, array("style" => "background-color:#0000FF;border:solid;border-width:2px;"));
 						$results = $mysqli->query(	"SELECT `drawer`, `unit`, `trans_id` FROM `storage_box`
 														WHERE `trans_id` IS NOT NULL;");
+						if(!$results)
+						{
+					            error_log("objbox.php: SQL error: $mysqli->error");
+					            echo "<tr> <td colspan='4'> SQL error: $mysqli->error </td> </tr>";
+						}
 
 						while($row = $results->fetch_assoc())
 						{
@@ -110,10 +115,14 @@ if (!$staff || $staff->getRoleID() < $sv['LvlOfStaff']){
 							<td>Capacity</td>
 							<td>
 								<?php
-								if($results = $mysqli->query("SELECT COUNT(`drawer`)
-																	FROM `storage_box`;"
-								)) {
+								if($results = $mysqli->query("SELECT COUNT(`drawer`)FROM `storage_box`;"))
+								{
 									echo $results->fetch_assoc()["COUNT(`drawer`)"];
+								}
+								else
+								{
+							            error_log("objbox.php: SQL error: $mysqli->error");
+							            echo "<tr> <td colspan='4'> SQL error: $mysqli->error </td> </tr>";
 								}
 								?>	
 							</td>

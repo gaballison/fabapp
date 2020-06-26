@@ -93,32 +93,36 @@ function submitTM($tm_id, $operator, $staff){
 								<td>
 									<select name="d_id" id="d_id" onchange="selectDevice(this)" tabindex="1">
 										<option disabled hidden selected value="">Device</option>
-										<?php if($result = $mysqli->query("
-											SELECT DISTINCT `devices`.`d_id`, `devices`.`device_desc`
+										<?php if($result = $mysqli->query(
+											"SELECT DISTINCT `devices`.`d_id`, `devices`.`device_desc`
 											FROM `devices`
 											INNER JOIN `trainingmodule`
 											ON `devices`.`d_id` = `trainingmodule`.`d_id`
-											ORDER BY `device_desc`
-										")){
+											ORDER BY `device_desc`;"
+										))
+										{
 											while($row = $result->fetch_assoc()){
 												echo("<option value='$row[d_id]'>$row[device_desc]</option>");
 											}
 										} else {
 											echo ("Device list Error - SQL ERROR");
+											error_log("admin/training_certificate.php: SQL error: $mysqli->error");
 										}?>
 									</select> or <select name="dg_id" id="dg_id" onchange="selectDevice(this)" tabindex="2">
 										<option disabled hidden selected value="">Device Group</option>
-										<?php if($result = $mysqli->query("
-											SELECT DISTINCT `device_group`.`dg_id`, `device_group`.`dg_desc`
+										<?php if($result = $mysqli->query(
+											"SELECT DISTINCT `device_group`.`dg_id`, `device_group`.`dg_desc`
 											FROM `device_group`
 											INNER JOIN `trainingmodule`
 											ON `device_group`.`dg_id` = `trainingmodule`.`dg_id`
-											ORDER BY `dg_desc`
-										")){
+											ORDER BY `dg_desc`;"
+										))
+										{
 											while($row = $result->fetch_assoc()){
 												echo("<option value='$row[dg_id]'>$row[dg_desc]</option>");
 											}
 										} else {
+											error_log("admin/training_certificate.php: SQL error: $mysqli->error");
 											echo ("Device list Error - SQL ERROR");
 										}?>
 									</select>
@@ -201,31 +205,33 @@ function submitTM($tm_id, $operator, $staff){
 				<div class="panel-body">
 					<table class="table table-condensed">
 						<tbody>
-							<?php if($result = $mysqli->query("
-								SELECT count(*) as count
-								FROM `trainingmodule`
-						")){
+						<?php 
+						if($result = $mysqli->query("SELECT count(*) as count FROM `trainingmodule`;"))
+						{
 							$row = $result->fetch_assoc()?>
 							<tr>
 								<td><i class="far fa-file fa-lg"></i> Training Modules</td>
 								<td><?php echo $row['count'];?></td>
 							</tr>
-						<?php } else { ?>
+						<?php }
+						else { 
+							error_log("admin/training_certificate.php: SQL error: $mysqli->error");
+							?>
 							<tr>
 								<td>Training Modules</td><td>-</td>
 							</tr>
 						<?php } ?>
-						<?php if($result = $mysqli->query("
-							SELECT count(*) as count
-							FROM `tm_enroll`
-							WHERE `current` = 'Y'
-						")){
+						<?php if($result = $mysqli->query("SELECT count(*) as count FROM `tm_enroll` WHERE `current` = 'Y';"))
+						{
 							$row = $result->fetch_assoc()?>
 							<tr>
 								<td><i class="far fa-check-circle fa-lg"></i> Certificates Issued</td>
 								<td><?php echo $row['count'];?></td>
 							</tr>
-						<?php } else { ?>
+						<?php }
+						else { 
+							error_log("admin/training_certificate.php: SQL error: $mysqli->error");
+							?>
 							<tr>
 								<td>Training Enrollments</td><td>-</td>
 							</tr>

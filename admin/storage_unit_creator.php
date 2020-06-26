@@ -227,12 +227,15 @@ elseif($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["delete_unit_button"
 										onkeyup='enable_new_drawer_button();' onchange='enable_new_drawer_button();'>
 										<datalist id='new_unit_suggestions'>
 											<?php 
-											if($results = $mysqli->query(" SELECT `type`
-																			FROM `storage_box`
-																			GROUP BY `type`;"
+											if($results = $mysqli->query("SELECT `type` FROM `storage_box` GROUP BY `type`;"
 											)) {
 												while($row = $results->fetch_assoc())
 													echo "<option value='$row[type]'>";
+											}
+											else
+											{
+												error_log("storage_unit_creator.php: SQL error: $mysqli->error");
+												echo "<option value='' selected disabled hidden>SQL error: $mysqli->error</option>";
 											}
 											?>
 										</datalist>
@@ -337,12 +340,15 @@ elseif($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["delete_unit_button"
 										onchange='enable_partition_button();' onkeyup='enable_partition_button();'>
 										<datalist id='edit_unit_suggestions'>
 											<?php 
-												if($results = $mysqli->query(" SELECT `type`
-																				FROM `storage_box`
-																				GROUP BY `type`;"
+												if($results = $mysqli->query("SELECT `type` FROM `storage_box` GROUP BY `type`;"
 												)) {
 													while($row = $results->fetch_assoc())
 														echo "<option value='$row[type]'>";
+												}			
+												else
+												{
+													error_log("storage_unit_creator.php: SQL error: $mysqli->error");
+													echo "<option value='' selected disabled hidden>SQL error: $mysqli->error</option>";
 												}
 											?>
 										</datalist>

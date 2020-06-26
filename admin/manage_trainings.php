@@ -21,33 +21,36 @@ if ( !empty($_GET['add']) && $staff){
     //declare empty fields
     $title = $tm_desc = $duration = $tm_required = $file_name = $class_size = $device = $tm_stamp = "";
     $input = explode("=", $_GET['add']);
-    if( preg_match('(dg_id)', $input[0]) ){
-        if($result = $mysqli->query("
-            SELECT *
-            FROM `device_group`
-            WHERE `dg_id` = '$input[1]'
-        ")){
+    if(preg_match('(dg_id)', $input[0]) && is_numeric($input[1]))
+    {
+        if($result = $mysqli->query("SELECT * FROM `device_group` WHERE `dg_id` = $input[1];"))
+        {
             $row = $result->fetch_assoc();
             $device = $row['dg_desc'];
 
             $_SESSION['type'] = 'input_add';
-        } else {
-            $_SESSION['type'] = 'ERROR';
         }
-    } elseif( preg_match('(d_id)', $input[0]) ) {
-        if($result = $mysqli->query("
-            SELECT *
-            FROM `devices`
-            WHERE `d_id` = '$input[1]'
-        ")){
+        else {
+            $_SESSION['type'] = 'ERROR';
+            error_log("manage_trainings.php: SQL error: $mysqli->error");
+        }
+    }
+    elseif(preg_match('(d_id)', $input[0]) && is_numeric($input[1]))
+    {
+        if($result = $mysqli->query("SELECT * FROM `devices` WHERE `d_id` = $input[1]"))
+        {
             $row = $result->fetch_assoc();
             $device = $row['device_desc'];
 
             $_SESSION['type'] = 'input_add';
-        } else {
-            $_SESSION['type'] = 'ERROR';
         }
-    } else {
+        else
+        {
+            $_SESSION['type'] = 'ERROR';
+            error_log("manage_trainings.php: SQL error: $mysqli->error");
+        }
+    }
+    else {
         $_SESSION['type'] = 'ERROR';
     }
 
@@ -62,16 +65,12 @@ if ( !empty($_GET['add']) && $staff){
     }
 
     //populate fields
-    if( $result = $mysqli->query("
-        SELECT *
-        FROM `trainingmodule`
-        LEFT JOIN `devices`
-        ON `devices`.`d_id` = `trainingmodule`.`d_id`
-        LEFT JOIN `device_group`
-        ON `device_group`.`dg_id` = `trainingmodule`.`dg_id`
-        WHERE `tm_id` = $tm_id
-        LIMIT 1;
-    ")){
+    if( $result = $mysqli->query(   "SELECT * FROM `trainingmodule`
+                                                    LEFT JOIN `devices` ON `devices`.`d_id` = `trainingmodule`.`d_id`
+                                                    LEFT JOIN `device_group` ON `device_group`.`dg_id` = `trainingmodule`.`dg_id`
+                                                    WHERE `tm_id` = $tm_id LIMIT 1;"
+    ))
+    {
         $row = $result->fetch_assoc();
         $title = $row['title'];
         $tm_desc = $row['tm_desc'];
@@ -89,9 +88,11 @@ if ( !empty($_GET['add']) && $staff){
         } else {
             $device = $row['dg_desc'];
         }
-    } else {
+    }
+    else {
         echo $mysqli->error;
         $_SESSION['type'] = 'error';
+        error_log("manage_trainings.php: SQL error: $mysqli->error");
     }
 } else {
     //no arugements passed through the url
@@ -271,20 +272,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <div class="panel-body">
                             <table class="table table-condensed">
                                 <tbody>
-                                    <?php if(isset($tm_id) && $result = $mysqli->query("
-                                        SELECT count(*) as count
-                                        FROM `tm_enroll`
-                                        WHERE `tm_id` = $tm_id;
-                                    ")){
+                                    <?php if(isset($tm_id) && $result = $mysqli->query(
+                                        "SELECT count(*) as count FROM `tm_enroll`
+                                        WHERE `tm_id` = $tm_id;"
+                                    ))
+                                    {
                                         $row = $result->fetch_assoc()?>
                                         <tr>
                                             <td><i class="far fa-check-circle fa-lg"></i> Certificates Issued</td>
                                             <td><?php echo $row['count'];?></td>
                                         </tr>
-                                    <?php } else { ?>
+                                        <?php 
+                                    }
+                                    else
+                                    {
+                                        ?>
                                         <tr>
                                         <td>Training Enrollments</td><td>-</td></tr>
-                                    <?php } ?>
+                                        <?php
+                                        error_log("manage_trainings.php: SQL error: $mysqli->error");
+                                    }
+                                    ?>
                                 </tbody>
                             </table>
                         </div>
@@ -307,29 +315,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <div align="center">
                                 <select name="d_id" id="d_id" onchange="selectDevice(this)" tabindex="1">
                                     <option disabled hidden selected value="">Device</option>
-                                    <?php if($result = $mysqli->query("
-                                        SELECT d_id, device_desc
-                                        FROM devices
-                                        ORDER BY device_desc
-                                    ")){
+                                    <?php if($result = $mysqli->query(
+                                        "SELECT d_id, device_desc FROM devices ORDER BY device_desc;"
+                                    ))
+                                    {
                                         while($row = $result->fetch_assoc()){
                                             echo("<option value='".$row["d_id"]."'>".$row["device_desc"]."</option>");
                                         }
-                                    } else {
+                                    }
+                                    else {
                                         echo ("Device list Error - SQL ERROR");
+                                        error_log("manage_trainings.php: SQL error: $mysqli->error");
                                     }?>
                                 </select> or <select name="dg_id" id="dg_id" onchange="selectDevice(this)" tabindex="2">
                                         <option disabled hidden selected value="">Device Group</option>
-                                        <?php if($result = $mysqli->query("
-                                            SELECT dg_id, dg_desc
-                                            FROM device_group
-                                            ORDER BY dg_desc
-                                        ")){
+                                        <?php if($result = $mysqli->query(
+                                            "SELECT dg_id, dg_desc FROM device_group ORDER BY dg_desc;"
+                                        ))
+                                        {
                                             while($row = $result->fetch_assoc()){
                                                 echo("<option value='".$row["dg_id"]."'>".$row["dg_desc"]."</option>");
                                             }
-                                        } else {
+                                        }
+                                        else
+                                        {
                                             echo ("Device list Error - SQL ERROR");
+                                            error_log("manage_trainings.php: SQL error: $mysqli->error");
                                         }?>
                                 </select>
                             </div>
@@ -371,33 +382,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <div class="panel-body">
                             <table class="table table-condensed">
                                 <tbody>
-                                <?php if($result = $mysqli->query("
-                                    SELECT count(*) as count
-                                    FROM `trainingmodule`
-                                ")){
+                                <?php if($result = $mysqli->query("SELECT count(*) as count FROM `trainingmodule`"))
+                                {
                                     $row = $result->fetch_assoc()?>
                                     <tr>
                                         <td><i class="far fa-file fa-lg"></i> Training Modules</td>
                                         <td><?php echo $row['count'];?></td>
                                     </tr>
-                                <?php } else { ?>
+                                    <?php
+                                }
+                                else
+                                { 
+                                    error_log("manage_trainings.php: SQL error: $mysqli->error");
+                                    ?>
                                     <tr>
                                         <td><i class="far fa-file fa-lg"></i> Training Modules</td><td>-</td></tr>
-                                <?php } 
-                                if($result = $mysqli->query("
-                                        SELECT count(*) as count
-                                        FROM `tm_enroll`
-                                        WHERE `current` = 'Y'
-                                ")){
+                                    <?php 
+                                } 
+                                if($result = $mysqli->query("SELECT count(*) as count FROM `tm_enroll` WHERE `current` = 'Y'"))
+                                {
                                     $row = $result->fetch_assoc()?>
                                     <tr>
                                         <td><i class="far fa-check-circle fa-lg"></i> Certificates Issued</td>
                                         <td><?php echo $row['count'];?></td>
                                     </tr>
-                                <?php } else { ?>
+                                    <?php 
+                                }
+                                else
+                                {
+                                    error_log("manage_trainings.php: SQL error: $mysqli->error");
+                                    ?>
                                     <tr>
-                                        <td>Training Enrollments</td><td>-</td></tr>
-                                <?php } ?>
+                                        <td>Training Enrollments</td><td>-</td>
+                                    </tr>
+                                    <?php
+                                }
+                                ?>
                                 </tbody>
                             </table>
                         </div>

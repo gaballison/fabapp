@@ -27,18 +27,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if (is_string($str)){
                 $resultStr = $str;
             } else {
-                if ($mysqli->query("
-                    UPDATE `users`
-                    SET `icon` = '$icon_code'
-                    WHERE `operator` = '$operator';
-                ")) {
-                    $resultStr = "Operator ID $operator has been successfully added";
-                }
-                else {
+                $statement = $mysqli->prepare("UPDATE `users` SET `icon` = ? WHERE `operator` = ?;");
+                if($statement) $statement->bind_param("ss", $icon_code, $operator);
+
+                if(!$statement)
+                {
                     $resultStr = $mysqli->error;
+                    error_log("onboarding.php: SQL statement: $mysqli->error");
                 }
-            }
-            
+                elseif($statement->execute()) $resultStr = "Operator ID $operator has been successfully added";
+                else $resultStr = $mysqli->error;
+            }  
         } else {
             echo "<script>window.onload = function(){goModal('Error',\"Invalid Role\", false)}</script>";
         }
@@ -64,18 +63,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $resultStr = $str;
                 } else {
                     if (filter_input(INPUT_POST,'icon_code1') != NULL){
-                        if ($mysqli->query("
-                            UPDATE `users`
-                            SET `icon` = '$icon_code1'
-                            WHERE `operator` = '$operator1';
-                        ")) {
-                            $resultStr = "Operator ID $operator1 has been successfully updated";
-                        }
-                        else {
+                        $statement = $mysqli->prepare("UPDATE `users` SET `icon` = ? WHERE `operator` = ?;");
+                        if($statement) $statement->bind_param("ss", $icon_code, $operator);
+
+                        if(!$statement)
+                        {
                             $resultStr = $mysqli->error;
+                            error_log("onboarding.php: SQL statement: $mysqli->error");
                         }
-                    } else {
-                        $resultStr = "Operator ID $operator1 has been successfully updated";
+                        elseif($statement->execute()) $resultStr = "Operator ID $operator has been successfully updated";
+                        else $resultStr = $mysqli->error;
                     }
                 }
 
@@ -149,9 +146,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                                                 <option value="" disabled selected>Select Role</option>
                                                                 <?php
                                                                     $staff_role = $staff->getRoleID();
-                                                                    $result = $mysqli->query("SELECT * FROM `role` WHERE `r_id`<= '$staff_role' ORDER BY `r_id` DESC;");
-                                                                    while($row = $result->fetch_assoc()){
-                                                                        echo "<option value=\"$row[r_id]\">$row[title]</option>";
+                                                                    $result = $mysqli->query("SELECT * FROM `role` WHERE `r_id`<= $staff_role ORDER BY `r_id` DESC;");
+                                                                    if($result)
+                                                                    {
+                                                                        while($row = $result->fetch_assoc()){
+                                                                            echo "<option value=\"$row[r_id]\">$row[title]</option>";
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        error_log("onboarding.php: SQL error: $mysqli->error");
+                                                                        echo "<option value='' selected disabled hidden>SQL error: $mysqli->error</option>";
                                                                     }
                                                                 ?>
                                                             </select>
@@ -207,10 +212,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                                                     $result = $mysqli->query("
                                                                     SELECT DISTINCT `role`.`r_id` , `role`.`title` 
                                                                     FROM `role` , `users`
-                                                                    WHERE `users`.`r_id` = `role`.`r_id` AND `users`.`r_id` <= '$staff_role'
+                                                                    WHERE `users`.`r_id` = `role`.`r_id` AND `users`.`r_id` <= $staff_role
                                                                     ORDER BY `r_id` DESC;");
-                                                                    while($row = $result->fetch_assoc()){
-                                                                        echo "<option value=\"$row[r_id]\">$row[title]</option>";
+                                                                    if($result)
+                                                                    {
+                                                                        while($row = $result->fetch_assoc()){
+                                                                            echo "<option value=\"$row[r_id]\">$row[title]</option>";
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        error_log("onboarding.php: SQL error: $mysqli->error");
+                                                                        echo "<option value='' selected disabled hidden>SQL error: $mysqli->error</option>";
                                                                     }
                                                                 ?>
                                                             </select>
@@ -234,9 +247,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                                                 <option value="" disabled selected>Select Role</option>
                                                                 <?php
                                                                     $staff_role = $staff->getRoleID();
-                                                                    $result = $mysqli->query("SELECT * FROM `role` WHERE `r_id`<= '$staff_role' ORDER BY `r_id` DESC;");
-                                                                    while($row = $result->fetch_assoc()){
-                                                                        echo "<option value=\"$row[r_id]\">$row[title]</option>";
+                                                                    $result = $mysqli->query("SELECT * FROM `role` WHERE `r_id`<= $staff_role ORDER BY `r_id` DESC;");
+                                                                    if($result)
+                                                                    {
+                                                                        while($row = $result->fetch_assoc()){
+                                                                            echo "<option value=\"$row[r_id]\">$row[title]</option>";
+                                                                        }
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        error_log("onboarding.php: SQL error: $mysqli->error");
+                                                                        echo "<option value='' selected disabled hidden>SQL error: $mysqli->error</option>";
                                                                     }
                                                                 ?>
                                                             </select>
@@ -352,8 +373,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                                                 </td>
 
                                                             </tr>
-                                                        <?php }
-                                                    } ?>
+                                                            <?php
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        error_log("onboarding.php: SQL error: $mysqli->error");
+                                                        echo "<option value='' selected disabled hidden>SQL error: $mysqli->error</option>";
+                                                    }
+                                                ?>
                                                 </tbody>
                                             </table>
                                         </div>

@@ -108,12 +108,16 @@ $tables = Database_Table::get_tables();
 						<select id='device' name='device' class='form-control'>
 							<option value='*'>All</option>
 							<?php 
-							if($results = $mysqli->query("SELECT `d_id`, `device_desc` 
-															FROM  `devices`;"
-							)) {
+							if($results = $mysqli->query("SELECT `d_id`, `device_desc` FROM  `devices`;"))
+							{
 								while($row = $results->fetch_assoc()) {
 									echo "<option value='$row[d_id]'>$row[device_desc]</option>";
 								}
+							}
+							else
+							{
+								error_log("onboarding.php: SQL error: $mysqli->error");
+								echo "<option value='' selected disabled hidden>SQL error: $mysqli->error</option>";
 							}
 							?>
 						</select>
@@ -147,6 +151,7 @@ $tables = Database_Table::get_tables();
 									}
 									else {
 										echo "<option disabled selected hidden>Could not get query</option>";
+										error_log("onboarding.php: SQL error: $mysqli->error");
 									}
 									?>
 									</select>
@@ -162,6 +167,7 @@ $tables = Database_Table::get_tables();
 									}
 									else {
 										echo "<option disabled selected hidden>Could not get query</option>";
+										error_log("onboarding.php: SQL error: $mysqli->error");
 									}
 									?>
 									</select>

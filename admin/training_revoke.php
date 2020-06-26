@@ -142,27 +142,29 @@ elseif($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['restore_training'])
 										FROM `devices`
 										INNER JOIN `trainingmodule`
 										ON `devices`.`d_id` = `trainingmodule`.`d_id`
-										ORDER BY `device_desc`
-									")){
+										ORDER BY `device_desc`;"
+									)){
 										while($row = $result->fetch_assoc()){
 											echo("<option value='$row[d_id]'>$row[device_desc]</option>");
 										}
 									} else {
+										error_log("admin/training_revoke.php: SQL error: $mysqli->error");
 										echo ("Device list Error - SQL ERROR");
 									}?>
 								</select> or <select name="dg_id" id="dg_id" onchange="selectDevice(this)" tabindex="2">
 									<option disabled hidden selected value="">Device Group</option>
-									<?php if($result = $mysqli->query("
-										SELECT DISTINCT `device_group`.`dg_id`, `device_group`.`dg_desc`
+									<?php if($result = $mysqli->query(
+										"SELECT DISTINCT `device_group`.`dg_id`, `device_group`.`dg_desc`
 										FROM `device_group`
 										INNER JOIN `trainingmodule`
 										ON `device_group`.`dg_id` = `trainingmodule`.`dg_id`
-										ORDER BY `dg_desc`
-									")){
+										ORDER BY `dg_desc`;"
+									)){
 										while($row = $result->fetch_assoc()){
 											echo("<option value='$row[dg_id]'>$row[dg_desc]</option>");
 										}
 									} else {
+										error_log("admin/training_revoke.php: SQL error: $mysqli->error");
 										echo ("Device list Error - SQL ERROR");
 									}?>
 								</select>
